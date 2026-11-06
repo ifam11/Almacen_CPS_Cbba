@@ -9,7 +9,7 @@ datasources:
     database: almacen_cps
     user: root
     secureJsonData:
-      password: "73394527"
+      password: "$__env{DB_PASSWORD}"
     jsonData:
       sslmode: "disable"
       maxOpenConns: 10
