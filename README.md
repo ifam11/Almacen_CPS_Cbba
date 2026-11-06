@@ -1,147 +1,189 @@
-# Ecosistema Web y Móvil de Gestión, Trazabilidad e Inteligencia de Inventarios
-### Almacén Central — Caja Petrolera de Salud (CPS)
+# 🏥 Ecosistema de Gestión, Trazabilidad e Inteligencia de Inventarios
+### Almacén Central — Caja Petrolera de Salud (CPS), Cochabamba
 
-Este repositorio contiene la solución completa de grado de producción para el control integral de inventarios hospitalarios, basada en **Clean Architecture**, **SOLID**, **lógica por lotes atómicos**, **trazabilidad inmutable en Kardex y Bitácora** y cumplimiento estricto de las reglas de rotación **FEFO** (fármacos sanitarios) y **FIFO** (material administrativo).
+![NodeJS](https://img.shields.io/badge/Node.js-v18+-green?style=flat-square&logo=node.js)
+![Express](https://img.shields.io/badge/Express.js-4.18-black?style=flat-square&logo=express)
+![React](https://img.shields.io/badge/React-18.3-blue?style=flat-square&logo=react)
+![Vite](https://img.shields.io/badge/Vite-5.0-purple?style=flat-square&logo=vite)
+![React Native](https://img.shields.io/badge/React_Native-Expo-darkblue?style=flat-square&logo=expo)
+![MySQL](https://img.shields.io/badge/MySQL-8.0_InnoDB-orange?style=flat-square&logo=mysql)
+![Python](https://img.shields.io/badge/Python-3.10+-yellow?style=flat-square&logo=python)
+![Scikit Learn](https://img.shields.io/badge/Scikit--Learn-Random_Forest-informational?style=flat-square&logo=scikit-learn)
+![Grafana](https://img.shields.io/badge/Grafana-OSS_v10-red?style=flat-square&logo=grafana)
+![Antigravity](https://img.shields.io/badge/Antigravity-AI_Customized-blueviolet?style=flat-square)
+
+Solución hospitalaria empresarial para el control integral, trazabilidad inmutable y pronóstico inteligente de inventarios de la **Caja Petrolera de Salud (Regional Cochabamba)**. Construida bajo **Clean Architecture**, **SOLID**, **lógica estricta por lotes**, **asientos contables inmutables en Kardex**, **bitácora forense de auditoría** y cumplimiento riguroso de las reglas **FEFO** (fármacos) y **FIFO** (material administrativo).
 
 ---
 
-## Estructura del Ecosistema
+## 📌 Documentación Técnica Detallada
 
-```
-Almacen_CPS/
-├── database/                    # Scripts DDL y semillas MySQL transaccional ACID
-│   ├── schema.sql               # Esquema relacional con FK, tipos exactos e índices FEFO/FIFO
-│   └── seeds.sql                # Roles RBAC, usuarios con hash Bcrypt, proveedores e insumos
-│
-├── backend/                     # API RESTful en Node.js + Express.js (Clean Architecture)
-│   ├── src/
-│   │   ├── config/              # Conexión Sequelize (Pool, zona horaria -04:00) y JWT
-│   │   ├── middlewares/         # JWT, RBAC, Auditoría Inmutable (IP, tabla, acción) y Errores
-│   │   ├── models/              # Modelos Sequelize con hooks de inmutabilidad (Kardex y Bitácora)
-│   │   ├── modules/
-│   │   │   ├── auth/            # Módulo 1: Login institucional con Bcrypt y JWT
-│   │   │   ├── users/           # Módulo 1: CRUD de usuarios y roles RBAC
-│   │   │   ├── audit/           # Módulo 1: Consulta forense de la bitácora inmutable
-│   │   │   ├── suppliers/       # Módulo 2: Proveedores con validación de NIT/RUT único
-│   │   │   ├── items/           # Módulo 2: Catálogo de Insumos (Sanitarios vs Administrativos)
-│   │   │   ├── reception/       # Módulo 2: Recepción por lotes ACID y emisión de QR (Base64)
-│   │   │   ├── dispatch/        # Módulo 3: Motor de Despacho con validación FEFO (HTTP 403)
-│   │   │   ├── dashboard/       # Módulo 4: Métricas financieras y semáforo (<30d y <60d)
-│   │   │   └── ai/              # Módulo 5: Orquestador Node.js -> Python predictivo
-│   │   ├── utils/               # Formato de respuesta { success, data, message }
-│   │   ├── app.js               # Middlewares globales y enrutador modular
-│   │   ├── server.js            # Punto de arranque y graceful shutdown
-│   │   └── scripts/seed.js      # Seeder ejecutable con Node.js
-│   └── package.json
-│
-├── frontend_web/                # Portal Administrativo / Gerencial en React.js (Vite)
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Header.jsx              # Navbar con reloj oficial de La Paz y perfil
-│   │   │   ├── MetricCard.jsx          # Tarjetas de valorización, rotación y alertas
-│   │   │   ├── ExpiryAlertTable.jsx    # Semáforo de caducidad (<30d Roja, <60d Amarilla)
-│   │   │   ├── FinancialBreakdown.jsx  # Gráfico comparativo Sanitario vs Administrativo
-│   │   │   ├── ReorderAlertList.jsx    # Alertas de punto de reorden y quiebre de stock
-│   │   │   ├── RecentKardexFeed.jsx    # Feed contable en vivo del Kardex
-│   │   │   ├── QrDetailModal.jsx       # Visualización e impresión de etiquetas térmicas QR
-│   │   │   ├── AIPredictionModal.jsx   # Pronóstico Random Forest y ajuste de ROP
-│   │   │   └── LoginModal.jsx          # Modal de acceso gerencial
-│   │   ├── context/AuthContext.jsx     # Gestión de sesión JWT
-│   │   ├── services/api.js             # Cliente Axios con interceptor
-│   │   ├── index.css                   # Sistema de diseño empresarial
-│   │   └── App.jsx                     # Dashboard integral
-│   └── package.json
-│
-├── frontend_mobile/             # App Móvil para Operarios en Pasillo (React Native / Expo)
-│   ├── src/
-│   │   ├── screens/
-│   │   │   ├── LoginScreen.js          # Acceso institucional de operarios
-│   │   │   ├── HomeScreen.js           # Botón Gigante de Escaneo de QR en pasillo
-│   │   │   ├── ScannerScreen.js        # Visor de cámara nativa con retícula y linterna
-│   │   │   └── LoteDetailScreen.js     # Detalle del lote, selector y confirmación
-│   │   ├── components/
-│   │   │   ├── FefoAlertModal.js       # Modal de Bloqueo Sanitario (HTTP 403 Forbidden)
-│   │   │   └── DispatchSuccessModal.js # Comprobante de egreso con número de Kardex
-│   │   ├── config/api.js               # Conexión móvil con la API REST
-│   │   └── context/AuthContext.js      # Sesión de operario
-│   ├── App.js                          # Enrutador móvil
-│   ├── app.json                        # Permisos de cámara en Android/iOS
-│   └── package.json
-│
-└── ai_service/                  # Microservicio de Inteligencia Artificial (Python 3)
-    ├── predict_demand.py        # Random Forest Regressor, Lags, cálculo ROP y SS
-    ├── requirements.txt         # Scikit-learn, Pandas, Numpy, Scipy
-    └── .venv/                   # Entorno virtual con paquetes instalados
+Para profundizar en la ingeniería del proyecto, consulta los manuales en el directorio [`docs/`](./docs/):
+
+* 📐 [**Arquitectura de Software**](./docs/ARCHITECTURE.md): Capas de Clean Architecture, microservicios y diagramas de secuencia.
+* 🔌 [**Especificación de la API RESTful**](./docs/API.md): Endpoints, payloads JSON, códigos HTTP y alertas FEFO (403).
+* 🗄️ [**Diccionario de Base de Datos**](./docs/DATABASE.md): Esquema MySQL relacional, índices de alto rendimiento y ERD.
+* 🧠 [**Modelos de Inteligencia Artificial**](./docs/AI_MODELS.md): Random Forest, ingeniería de características temporales y fórmulas estocásticas de ROP y SS.
+* 🤖 [**Personalizaciones para Agentes de IA (.agents/)**](./.agents/README.md): Habilidades y reglas para Google Antigravity.
+* 🤝 [**Guía de Contribución**](./CONTRIBUTING.md): Flujo de trabajo con ramas Git y estándares de código.
+
+---
+
+## 🏛️ Arquitectura del Ecosistema
+
+```mermaid
+graph TD
+    subgraph Capa_Clientes ["Capa de Presentación / Clientes"]
+        Web["🖥️ Frontend Web (React 18 + Vite)\nPuerto 5173\nPortal Gerencial & Reportes"]
+        Mobile["📱 Frontend Móvil (React Native + Expo)\nPuerto 8081\nOperarios de Pasillo & Escáner QR"]
+        Grafana["📊 Grafana OSS v10\nPuerto 3001\nTelemetría Operativa & MLOps"]
+    end
+
+    subgraph Capa_Servicios ["Capa de Negocio y Lógica"]
+        Backend["⚙️ Backend REST API (Node.js + Express)\nPuerto 5000\nClean Architecture & RBAC"]
+        AIService["🧠 Servicio de IA (Python)\nRandom Forest Regressor\nPredicción de Demanda & ROP"]
+    end
+
+    subgraph Capa_Datos ["Capa de Persistencia"]
+        MySQL[("🗄️ MySQL Server 8+\nPuerto 3306\nACID Transaccional\nKardex & Bitácora Append-Only")]
+    end
+
+    Web -->|HTTP / REST + JWT| Backend
+    Mobile -->|HTTP / REST + JWT| Backend
+    Backend -->|Proceso Subprocess / JSON| AIService
+    Backend -->|Sequelize ORM| MySQL
+    Grafana -->|MySQL DataSource| MySQL
 ```
 
 ---
 
-## Puesta en Marcha Rápida
+## 🚀 Puesta en Marcha Rápida (Entorno Local)
 
-### 1. Base de Datos MySQL
-1. En tu servidor MySQL (local, Docker o XAMPP), ejecuta el script:
-   ```sql
-   source database/schema.sql;
-   source database/seeds.sql;
-   ```
-2. O ejecuta el seeder automatizado en Node.js:
-   ```bash
-   cd backend
-   npm run db:seed
-   ```
+### Opción A: Lanzador General en 1 Clic (Recomendado en Windows)
+Haz doble clic en el archivo o ejecútalo desde la terminal en la raíz del proyecto:
+```cmd
+.\iniciar_todo.bat
+```
+*Este script verifica MySQL, arranca el Backend API (5000), el Frontend Web (5173), Expo Metro (8081) y Grafana (3001) en ventanas independientes.*
 
-### 2. Backend (API RESTful)
+---
+
+### Opción B: Inicio Manual Servicio por Servicio
+
+#### 1. Base de Datos MySQL
+En tu gestor MySQL (MySQL Workbench, XAMPP o Docker), ejecuta:
+```sql
+source database/schema.sql;
+source database/seeds.sql;
+```
+O ejecuta el seeder automático en Node.js:
+```bash
+cd backend && npm run db:seed
+```
+
+#### 2. Backend (API RESTful)
 ```bash
 cd backend
-npm start
-# O en modo desarrollo con recarga automática:
+npm install
 npm run dev
 ```
 * Servidor activo en: `http://localhost:5000`
 * Verificación de salud: `http://localhost:5000/api/v1/health`
 
-### 3. Frontend Web (Dashboard Gerencial)
+#### 3. Frontend Web (Dashboard Gerencial)
 ```bash
 cd frontend_web
+npm install
 npm run dev
 ```
-* Dashboard visible en: `http://localhost:5173`
+* Portal Web disponible en: `http://localhost:5173`
 
-### 4. Frontend Móvil (Operarios en Pasillo)
+#### 4. Frontend Móvil (Operarios en Pasillo)
 ```bash
 cd frontend_mobile
-npm start
+npm install
+npx expo start
 ```
-* Abre la app en el emulador de Android/iOS o escanea el código QR con **Expo Go** en tu dispositivo físico.
+* Escanea el código QR con **Expo Go** en Android/iOS o presiona `a` para emulador Android.
+
+#### 5. Servicio de Grafana
+```bash
+cd grafana_service
+.\run_grafana.bat
+```
+* Dashboards institucionales listos en: `http://localhost:3001` (Admin / Admin)
 
 ---
 
-## Credenciales Institucionales Pre-configuradas (Bcrypt Costo 10)
+## 🔑 Credenciales Institucionales de Prueba (Bcrypt Costo 10)
 
-| Rol | Correo Institucional | Contraseña | Perfil y Acceso |
+| Rol Institucional | Correo Electrónico | Contraseña | Alcance y Permisos |
 | :--- | :--- | :--- | :--- |
-| **Administrador** | `admin@cps.gob.bo` | `Admin123*` | Control total, configuración de usuarios, auditoría y catálogo |
-| **Gerente** | `gerencia@cps.gob.bo` | `Admin123*` | Dashboard analítico, valorización monetaria, rotación y semáforos |
-| **Encargado** | `encargado@cps.gob.bo` | `Admin123*` | Recepción de mercancía, emisión de QR, insumos y proveedores |
-| **Operario** | `operario@cps.gob.bo` | `Admin123*` | App móvil: Escaneo de QR, confirmación en pasillo y validación FEFO |
-| **Solicitante** | `solicitante@cps.gob.bo` | `Admin123*` | Médicos/Enfermería que solicitan despachos de salas y quirófanos |
+| **Administrador** | `admin@cps.gob.bo` | `Admin123*` | Control total, configuración de usuarios, auditoría forense y catálogo base |
+| **Gerente** | `gerencia@cps.gob.bo` | `Admin123*` | Dashboard gerencial, valorización monetaria, rotación y semáforos de vencimiento |
+| **Encargado** | `encargado@cps.gob.bo` | `Admin123*` | Recepción de mercancía por lotes, emisión de códigos QR e insumos |
+| **Operario** | `operario@cps.gob.bo` | `Admin123*` | App móvil: Escaneo QR en pasillos, confirmación de egresos y validación FEFO |
+| **Solicitante** | `solicitante@cps.gob.bo` | `Admin123*` | Solicitudes de insumos para salas médicas, pisos hospitalarios y quirófanos |
 
 ---
 
-## Comportamiento del Motor de Reglas Críticas
+## 🛡️ Reglas Críticas del Sistema
 
-### 1. Validación FEFO Estricta (Insumos Sanitarios / Fármacos)
-* Si un operario escanea un lote cuya fecha de caducidad es posterior a la de otro lote activo con existencias disponibles, la API intercepta la solicitud y responde:
-  * **Código de Estado HTTP:** `403 Forbidden`
-  * **Payload:** Detalla el lote rechazado y el lote obligatorio que debe retirarse con su ubicación física en pasillo.
-  * **App Móvil:** Despliega el modal de emergencia médica en rojo advirtiendo el bloqueo y guiando al operario al pasillo del lote prioritario.
+### 1. Rotación Sanitaria Obligatoria: FEFO
+* Si un operario intenta egresar un lote sanitario teniendo otro lote con fecha de caducidad anterior y stock disponible, la API bloquea el despacho:
+  * **Código HTTP:** `403 Forbidden`
+  * **Payload:** Detalla el lote rechazado y el lote obligatorio que debe retirarse con su pasillo y estante.
+  * **App Móvil:** Muestra el modal rojo de emergencia médica impidiendo el error humano.
 
-### 2. Regla FIFO (Insumos Administrativos)
-* Prioriza el despacho de los lotes por orden cronológico de ingreso a almacén.
+### 2. Rotación Administrativa: FIFO
+* Insumos de oficina y mantenimiento se despachan según el orden cronológico de ingreso a almacén.
 
-### 3. Inmutabilidad de Auditoría y Kardex
-* Los modelos `BitacoraAuditoria` y `MovimientoKardex` implementan hooks a nivel de ORM que rechazan cualquier sentencia `UPDATE` o `DELETE` físico (*Append-Only*). Las modificaciones de datos (POST, PUT, DELETE) se registran automáticamente en la bitácora con IP, usuario, tabla y valores anteriores/nuevos.
+### 3. Inmutabilidad en Kardex y Bitácora (Append-Only)
+* Los modelos `MovimientoKardex` y `BitacoraAuditoria` rechazan a nivel de base de datos y ORM cualquier sentencia `UPDATE` o `DELETE`. Toda corrección requiere un asiento contable compensatorio.
 
-### 4. Inteligencia Artificial (Random Forest Regressor)
-* El script `ai_service/predict_demand.py` procesa los históricos de despacho, genera características temporales rezagadas (*Lags 1..7* y medias móviles), proyecta la demanda mensual del ciclo entrante y calcula el Punto de Reorden ($ROP$) y Stock de Seguridad ($SS$) bajo la fórmula estocástica:
-  $$ROP = (\bar{d} \times L) + (Z \times \sigma_d \times \sqrt{L})$$
+### 4. Inteligencia Artificial (Random Forest)
+* El motor predictivo analiza la demanda histórica y calcula estocásticamente el **Punto de Reorden ($ROP$)** y el **Stock de Seguridad ($SS$)** con un Nivel de Servicio Hospitalario del 95%:
+  $$ROP = (\bar{d} \times L) + (1.645 \times \sigma_d \times \sqrt{L})$$
+
+---
+
+## 📂 Estructura del Repositorio
+
+```text
+Almacen_CPS/
+├── .agents/                     # Antigravity Skills, Reglas y Subagentes
+│   ├── skills/                  # Runbooks de FEFO, IA, Kardex y Desarrollo
+│   ├── rules/                   # Reglas de cumplimiento sanitario y código
+│   └── agents/                  # Definición de subagentes especializados
+├── database/                    # Esquema DDL relacional y semillas MySQL
+│   ├── schema.sql
+│   └── seeds.sql
+├── backend/                     # API RESTful en Node.js + Express (Clean Arch)
+│   ├── src/
+│   │   ├── config/              # Sequelize y JWT
+│   │   ├── middlewares/         # RBAC, Auditoría y Manejador de Errores
+│   │   ├── models/              # Modelos inmutables y relacionales
+│   │   └── modules/             # Auth, Users, Items, Reception, Dispatch, AI, Dashboard
+│   └── package.json
+├── frontend_web/                # Dashboard Administrativo en React + Vite + Tailwind
+│   ├── src/components/          # Semáforos, Métricas, Gráficos y Modales
+│   └── package.json
+├── frontend_mobile/             # App Móvil para Operarios en Pasillo (Expo)
+│   ├── src/screens/             # Escáner QR, Detalle de Lote y Alerta FEFO
+│   └── package.json
+├── ai_service/                  # Microservicio de IA en Python (Random Forest)
+│   ├── predict_demand.py
+│   └── dataset_pedidos_materiales_cps_cochabamba_1_anio.csv
+├── grafana_service/             # Dashboards OSS provisionados
+│   ├── conf/
+│   └── provisioning/
+├── docs/                        # Documentación técnica de arquitectura, API y DB
+├── AGENTS.md                    # Directrices maestras para agentes de IA
+├── CONTRIBUTING.md               # Guía de contribución y ramas Git
+└── iniciar_todo.bat             # Lanzador integral del ecosistema en Windows
+```
+
+---
+
+## ⚖️ Licencia
+Desarrollado para la **Caja Petrolera de Salud (CPS), Regional Cochabamba**, Bolivia. Todos los derechos reservados.
