@@ -1,0 +1,339 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 100,
+      "title": "INDICADORES CLAVE DE RENDIMIENTO (KPIs) - ALMACÉN CENTRAL CPS",
+      "type": "row"
+    },
+    {
+      "id": 1,
+      "title": "Valorización Total del Inventario",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT NOW() as time, COALESCE(SUM(cantidad_actual * costo_unitario), 0) as valor_total FROM lotes WHERE deleted_at IS NULL AND estado = 'DISPONIBLE';",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#007B6D" },
+          "unit": "none",
+          "decimals": 2,
+          "mappings": []
+        }
+      },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "orientation": "auto",
+        "textMode": "auto",
+        "colorMode": "background",
+        "graphMode": "none",
+        "text": {
+          "prefix": "Bs. "
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Lotes Críticos (<30 días Vencimiento FEFO)",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT NOW() as time, COUNT(*) as lotes_criticos FROM lotes l JOIN insumos i ON l.id_insumo = i.id_insumo WHERE l.deleted_at IS NULL AND l.estado = 'DISPONIBLE' AND i.tipo = 'SANITARIO' AND l.fecha_vencimiento <= DATE_ADD(CURDATE(), INTERVAL 30 DAY);",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#10B981", "value": null },
+              { "color": "#EF4444", "value": 1 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "title": "Insumos en Quiebre o Reorden",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT NOW() as time, COUNT(DISTINCT i.id_insumo) as en_alerta FROM insumos i LEFT JOIN (SELECT id_insumo, SUM(cantidad_actual) as stock_total FROM lotes WHERE estado='DISPONIBLE' AND deleted_at IS NULL GROUP BY id_insumo) s ON i.id_insumo = s.id_insumo WHERE COALESCE(s.stock_total, 0) <= i.punto_reorden;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "#10B981", "value": null },
+              { "color": "#F59E0B", "value": 1 }
+            ]
+          }
+        }
+      },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Movimientos Kardex Auditados",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT NOW() as time, COUNT(*) as total_mov FROM movimiento_kardex WHERE deleted_at IS NULL;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#007B6D" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "id": 101,
+      "title": "TRAZABILIDAD Y FLUJO CONTABLE DEL KARDEX",
+      "type": "row"
+    },
+    {
+      "id": 5,
+      "title": "Flujo de Entradas vs Salidas (Kardex)",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 7 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT fecha_movimiento AS time, SUM(CASE WHEN tipo_movimiento = 'INGRESO' THEN cantidad ELSE 0 END) AS 'Ingresos', SUM(CASE WHEN tipo_movimiento = 'DESPACHO' THEN cantidad ELSE 0 END) AS 'Despachos' FROM movimiento_kardex WHERE deleted_at IS NULL GROUP BY fecha_movimiento ORDER BY time ASC;",
+          "format": "time_series",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "drawStyle": "bars",
+            "lineInterpolation": "linear",
+            "fillOpacity": 65,
+            "gradientMode": "opacity"
+          },
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Valorización: Sanitario vs Administrativo",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 7 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT i.tipo AS metric, COALESCE(SUM(l.cantidad_actual * l.costo_unitario), 0) AS valor FROM lotes l JOIN insumos i ON l.id_insumo = i.id_insumo WHERE l.estado = 'DISPONIBLE' AND l.deleted_at IS NULL GROUP BY i.tipo;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "pieType": "donut",
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 102,
+      "title": "SEMÁFORO DE CADUCIDAD FEFO (LOTES PRÓXIMOS A VENCER)",
+      "type": "row"
+    },
+    {
+      "id": 7,
+      "title": "Lotes en Pasillo Priorizados por FEFO",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 16 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT l.numero_lote AS 'Nº Lote', i.codigo_institucional AS 'Código CPS', i.nombre AS 'Insumo Médico', i.tipo AS 'Tipo', l.cantidad_actual AS 'Stock Disponible', DATE_FORMAT(l.fecha_vencimiento, '%d/%m/%Y') AS 'Fecha Vencimiento', DATEDIFF(l.fecha_vencimiento, CURDATE()) AS 'Días Restantes', CASE WHEN DATEDIFF(l.fecha_vencimiento, CURDATE()) <= 30 THEN 'CRÍTICO (<30d)' WHEN DATEDIFF(l.fecha_vencimiento, CURDATE()) <= 60 THEN 'ALERTA (<60d)' ELSE 'ÓPTIMO FEFO' END AS 'Estado FEFO', l.ubicacion_pasillo AS 'Ubicación en Pasillo' FROM lotes l JOIN insumos i ON l.id_insumo = i.id_insumo WHERE l.estado = 'DISPONIBLE' AND l.cantidad_actual > 0 ORDER BY l.fecha_vencimiento ASC LIMIT 20;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "left",
+            "cellOptions": { "type": "auto" }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Nº Lote" },
+            "properties": [
+              { "id": "custom.width", "value": 170 },
+              { "id": "custom.align", "value": "left" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Código CPS" },
+            "properties": [
+              { "id": "custom.width", "value": 130 },
+              { "id": "custom.align", "value": "center" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Insumo Médico" },
+            "properties": [
+              { "id": "custom.width", "value": 240 }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Tipo" },
+            "properties": [
+              { "id": "custom.width", "value": 130 },
+              { "id": "custom.align", "value": "center" },
+              { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "basic" } },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "SANITARIO": { "color": "#007B6D", "text": "SANITARIO" }, "ADMINISTRATIVO": { "color": "#0284C7", "text": "ADMINISTRATIVO" } } }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Stock Disponible" },
+            "properties": [
+              { "id": "custom.width", "value": 130 },
+              { "id": "custom.align", "value": "right" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Fecha Vencimiento" },
+            "properties": [
+              { "id": "custom.width", "value": 140 },
+              { "id": "custom.align", "value": "center" }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Días Restantes" },
+            "properties": [
+              { "id": "custom.width", "value": 120 },
+              { "id": "custom.align", "value": "center" },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } },
+              {
+                "id": "thresholds",
+                "value": {
+                  "mode": "absolute",
+                  "steps": [
+                    { "color": "#EF4444", "value": null },
+                    { "color": "#F59E0B", "value": 31 },
+                    { "color": "#10B981", "value": 61 }
+                  ]
+                }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Estado FEFO" },
+            "properties": [
+              { "id": "custom.width", "value": 140 },
+              { "id": "custom.align", "value": "center" },
+              { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "basic" } },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "CRÍTICO (<30d)": { "color": "#EF4444", "text": "🔴 CRÍTICO (<30d)" }, "ALERTA (<60d)": { "color": "#F59E0B", "text": "🟡 ALERTA (<60d)" }, "ÓPTIMO FEFO": { "color": "#10B981", "text": "🟢 ÓPTIMO FEFO" } } }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "Ubicación en Pasillo" },
+            "properties": [
+              { "id": "custom.width", "value": 160 },
+              { "id": "custom.align", "value": "left" }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "sortBy": [
+          { "displayName": "Días Restantes", "desc": false }
+        ],
+        "footer": {
+          "show": true,
+          "reducer": ["count"],
+          "fields": ["Insumo Médico"]
+        }
+      }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "light",
+  "tags": ["cps", "almacen", "fefo", "fifo", "kardex"],
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timepicker": {
+    "refresh_intervals": ["5s", "10s", "30s", "1m", "5m"]
+  },
+  "timezone": "browser",
+  "title": "Almacén Central CPS - Monitoreo Operativo & Lotes FEFO/FIFO",
+  "uid": "cps-almacen-operativo",
+  "version": 2
+}

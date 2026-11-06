@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Python Virtual Environments & Cache
+.venv/
+venv/
+*/.venv/
+*/venv/
+__pycache__/
+*/__pycache__/
+*.py[cod]
+
+# Environment & Secrets
+.env
+*/.env
+!.env.example
+!*/.env.example
+
+# Large binary archives & distributions
+*.zip
+*.tar.gz
+grafana_service/grafana-v10.4.2/
+
+# Database runtime data
+database/mysqldata/
+database/mysql_datadir/
+
+# Build outputs & caches
+dist/
+*/dist/
+.expo/
+*/.expo/
+
+# OS / Editor files
+.vscode/
+Thumbs.db
+.DS_Store

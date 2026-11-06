@@ -1,0 +1,6 @@
+# Dependencias de Machine Learning y Análisis de Series Temporales
+# Para predicción de demanda de insumos hospitalarios CPS
+numpy>=1.26.0
+pandas>=2.2.0
+scikit-learn>=1.4.0
+scipy>=1.12.0
