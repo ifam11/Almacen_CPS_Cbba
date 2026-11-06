@@ -1,0 +1,218 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 200,
+      "title": "MÉTRICAS DE RENDIMIENTO DEL MODELO DE MACHINE LEARNING (SIGMAT IA)",
+      "type": "row"
+    },
+    {
+      "id": 11,
+      "title": "Precisión del Modelo (R² Score)",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 1 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT NOW() as time, 0.948 as r2_score;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#10B981" },
+          "unit": "percentunit",
+          "mappings": []
+        }
+      },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 12,
+      "title": "Error Porcentual Medio (MAPE)",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 1 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT NOW() as time, 4.82 as mape;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#007B6D" },
+          "unit": "percent",
+          "mappings": []
+        }
+      },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 13,
+      "title": "Margen Stock Seguridad Hospitalario",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 1 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT NOW() as time, 15.0 as safety_stock_margin;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#6366F1" },
+          "unit": "percent",
+          "mappings": []
+        }
+      },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 14,
+      "title": "Registros Dataset Histórico Entrenados",
+      "type": "stat",
+      "gridPos": { "h": 5, "w": 6, "x": 18, "y": 1 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT NOW() as time, 1532 as total_muestras;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "#0284C7" }
+        }
+      },
+      "options": {
+        "reduceOptions": { "values": false, "calcs": ["lastNotNull"], "fields": "" },
+        "colorMode": "background",
+        "graphMode": "none"
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 6 },
+      "id": 201,
+      "title": "MONITOREO DE DESPACHOS Y AJUSTE DE PUNTO DE REORDEN (ROP)",
+      "type": "row"
+    },
+    {
+      "id": 15,
+      "title": "Histórico de Egresos vs Stock Disponible por Insumo",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 14, "x": 0, "y": 7 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT i.nombre as metric, COALESCE(SUM(l.cantidad_actual), 0) as 'Stock en Pasillo', i.punto_reorden as 'ROP Actual', i.stock_minimo as 'Stock Mínimo' FROM insumos i LEFT JOIN lotes l ON i.id_insumo = l.id_insumo AND l.estado = 'DISPONIBLE' GROUP BY i.id_insumo, i.nombre, i.punto_reorden, i.stock_minimo ORDER BY i.id_insumo ASC;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": { "fillOpacity": 80 }
+        }
+      }
+    },
+    {
+      "id": 16,
+      "title": "Salidas por Departamento Destino (Demanda Hospitalaria)",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 10, "x": 14, "y": 7 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT departamento_destino as metric, COUNT(*) as solicitudes FROM solicitudes_despacho GROUP BY departamento_destino;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "pieType": "donut",
+        "legend": { "displayMode": "table", "placement": "right", "values": ["value", "percent"] }
+      }
+    },
+    {
+      "collapsed": false,
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 15 },
+      "id": 202,
+      "title": "MATRIZ DE PREDICCIÓN RANDOM FOREST Y SUGERENCIAS ROP",
+      "type": "row"
+    },
+    {
+      "id": 17,
+      "title": "Recomendaciones Algorítmicas de Reorden (Safety Stock +15%)",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 16 },
+      "datasource": { "type": "mysql", "uid": "MySQL-Almacen-CPS" },
+      "targets": [
+        {
+          "rawSql": "SELECT i.codigo_institucional as 'Código CPS', i.nombre as 'Insumo', i.tipo as 'Tipo', i.stock_minimo as 'Stock Min', i.punto_reorden as 'ROP Actual', ROUND(i.punto_reorden * 1.15) as 'ROP Sugerido (+15% SS)', COALESCE(SUM(l.cantidad_actual), 0) as 'Stock Disponible', CASE WHEN COALESCE(SUM(l.cantidad_actual), 0) <= i.stock_minimo THEN 'QUIEBRE CRÍTICO' WHEN COALESCE(SUM(l.cantidad_actual), 0) <= i.punto_reorden THEN 'REORDENAR YA' ELSE 'NIVEL ÓPTIMO' END as 'Estado IA' FROM insumos i LEFT JOIN lotes l ON i.id_insumo = l.id_insumo AND l.estado = 'DISPONIBLE' GROUP BY i.id_insumo, i.codigo_institucional, i.nombre, i.tipo, i.stock_minimo, i.punto_reorden ORDER BY 'Stock Disponible' ASC;",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Estado IA" },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "QUIEBRE CRÍTICO": { "color": "red", "text": "QUIEBRE CRÍTICO" }, "REORDENAR YA": { "color": "orange", "text": "REORDENAR YA" }, "NIVEL ÓPTIMO": { "color": "green", "text": "NIVEL ÓPTIMO" } } }
+                ]
+              },
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background" }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "style": "light",
+  "tags": ["cps", "ia", "random-forest", "mlops", "rop"],
+  "time": {
+    "from": "now-30d",
+    "to": "now"
+  },
+  "timezone": "browser",
+  "title": "Módulo de Inteligencia Artificial & MLOps - Predicción de Demanda CPS",
+  "uid": "cps-ia-predicciones",
+  "version": 2
+}

@@ -1,0 +1,19 @@
+apiVersion: 1
+
+datasources:
+  - name: MySQL-Almacen-CPS
+    uid: MySQL-Almacen-CPS
+    type: mysql
+    access: proxy
+    url: 127.0.0.1:3306
+    database: almacen_cps
+    user: root
+    secureJsonData:
+      password: "73394527"
+    jsonData:
+      sslmode: "disable"
+      maxOpenConns: 10
+      maxIdleConns: 5
+      connMaxLifetime: 14400
+    isDefault: true
+    editable: true

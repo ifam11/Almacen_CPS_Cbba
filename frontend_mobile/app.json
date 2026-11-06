@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "CPS Almacén Móvil",
+    "slug": "almacen-cps-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": false,
+    "splash": {
+      "resizeMode": "contain",
+      "backgroundColor": "#004D44"
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "CPS Almacén requiere acceso a la cámara para escanear los códigos QR de los lotes en pasillo."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#004D44"
+      },
+      "permissions": [
+        "CAMERA"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Permite a CPS Almacén escanear códigos QR de lotes hospitalarios."
+        }
+      ]
+    ]
+  }
+}
